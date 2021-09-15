@@ -1,0 +1,28 @@
+{
+    "exp_base": null,
+    "exp_name": "transfer",
+    "system": "TransferSystem",
+    "cuda": true,
+    "gpu_device": 8,
+    "seed": 1337,
+    "data_loader_workers": 8,
+    "data_params": {
+        "dataset": null
+    },
+    "model_params": {
+        "exp_dir": null,
+        "checkpoint_name": null
+    },
+    "optim_params": {
+        "batch_size": 256,
+        "learning_rate": 0.01,
+        "momentum": 0.9,
+        "weight_decay": 1e-5,
+        "validate_freq": 1,
+        "patience": 10
+    },
+    "num_epochs": 100,
+    "validate": true,
+    "copy_checkpoint_freq": 5,
+    "continue_from_checkpoint": null
+}
