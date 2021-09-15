@@ -48,6 +48,7 @@ class PretrainNCESystem(pl.LightningModule):
         super().__init__()
         self.config = config
         self.train_dataset, self.val_dataset = datasets.get_datasets(
+            config.data_params.root,
             config.data_params.dataset,
             mocov2_transforms=config.data_params.mocov2_transforms or False,
             mocov2_32x32_transforms=config.data_params.mocov2_32x32_transforms or False,
@@ -222,7 +223,8 @@ class PretrainNCESystem(pl.LightningModule):
             'thres_outer': thres_outer or 0, 
             'thres_inner': thres_inner or 0,
         }
-        return {'loss': loss, 'log': metrics}
+        self.log_dict(metrics)
+        return loss
 
     def validation_step(self, batch, batch_idx):
         loss, _ = self.get_losses_for_batch(batch, train=False)
@@ -244,7 +246,7 @@ class PretrainNCESystem(pl.LightningModule):
         metrics['val_acc'] = val_acc
         if self.config.loss_params.adaptive_anneal_on_acc:
             self.thres_outer_policy.record(val_acc)
-        return {'val_loss': metrics['val_loss'], 'log': metrics, 'val_acc': val_acc}
+        self.log_dict(metrics)
 
     def train_dataloader(self):
         return create_dataloader(self.train_dataset, self.config)
@@ -427,6 +429,7 @@ class TransferSystem(pl.LightningModule):
         utils.frozen_params(self.encoder)
         self.model = self.create_model()
         self.train_dataset, self.val_dataset = datasets.get_datasets(
+            config.data_params.root,
             config.data_params.dataset,
             mocov2_transforms=self.pretrain_config.data_params.mocov2_transforms or False,
             mocov2_32x32_transforms=self.pretrain_config.data_params.mocov2_32x32_transforms or False,
@@ -516,7 +519,8 @@ class TransferSystem(pl.LightningModule):
                 'train_num_total': num_total,
                 'train_acc': num_correct / float(num_total),
             }
-        return {'loss': loss, 'log': metrics}
+            self.log_dict(metrics)
+        return loss
 
     def validation_step(self, batch, _):
         loss = self.get_losses_for_batch(batch)
@@ -536,7 +540,7 @@ class TransferSystem(pl.LightningModule):
         num_total = sum([out['val_num_total'] for out in outputs])
         val_acc = num_correct / float(num_total)
         metrics['val_acc'] = val_acc
-        return {'val_loss': metrics['val_loss'], 'log': metrics, 'val_acc': val_acc}
+        self.log_dict(metrics)
 
     def configure_optimizers(self):
         optim = torch.optim.SGD(

@@ -10,7 +10,6 @@ torch.backends.cudnn.benchmark = True
 SYSTEM = {
     'PretrainNCESystem': systems.PretrainNCESystem,
     'PretrainMoCoSystem': systems.PretrainMoCoSystem,
-    'PretrainSimCLRSystem': systems.PretrainSimCLRSystem,
     'TransferSystem': systems.TransferSystem,
 }
 
@@ -58,9 +57,8 @@ def run(config_path, dataset, gpu_device=None):
         max_epochs=config.num_epochs,
         min_epochs=config.num_epochs,
         checkpoint_callback=ckpt_callback,
-        val_percent_check=0.1,
+        # learning rate callbacks
         callbacks=callbacks,
-        resume_from_checkpoint=config.continue_from_checkpoint,
     )
     trainer.fit(system)
 

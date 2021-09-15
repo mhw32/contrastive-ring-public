@@ -8,6 +8,7 @@
     "shuffle_bn": true,
     "data_loader_workers": 16,
     "data_params": {
+		"root": null,
         "dataset": null
     },
     "model_params": {

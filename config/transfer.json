@@ -7,6 +7,7 @@
     "seed": 1337,
     "data_loader_workers": 8,
     "data_params": {
+		"root": null,
         "dataset": null
     },
     "model_params": {

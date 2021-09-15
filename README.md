@@ -36,7 +36,7 @@ source init_env.sh
 
 to add the correct paths to `sys.path` before running anything else.
 
-The primary script is found in the `scripts/run.py` file. It is used to run pretraining and linear evaluation experiments. You must supply it a configuration file, for which many templates are in the `configs/` folder. These configuration files are not complete, you must supply a experiment base directory (`exp_base`) to point to where in your filesystem model checkpoints will go. 
+The primary script is found in the `scripts/run.py` file. It is used to run pretraining and linear evaluation experiments. You must supply it a configuration file, for which many templates are in the `configs/` folder. These configuration files are not complete, you must supply a experiment base directory (`exp_base`) to point to where in your filesystem model checkpoints will go. You must also supply a root directory where data should be downloaded to. 
 
 Example usage:
 
