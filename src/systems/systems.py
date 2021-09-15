@@ -16,7 +16,6 @@ from src.objectives.memory import MemoryBank
 from src.models.logreg import LogisticRegression
 from src.objectives.instdisc import NCE, NCEBall, NCERing
 from src.objectives.moco import MoCo, MoCoBall, MoCoRing
-from src.objectives.simclr import SimCLR, SimCLRBall, SimCLRRing
 from src.utils import utils
 from src.utils.policy import (
     AdaptiveThresholdPolicy,
@@ -416,51 +415,6 @@ class PretrainMoCoSystem(PretrainNCESystem):
         idx_this = idx_unshuffle.view(num_gpus, -1)[gpu_idx]
 
         return x_gather[idx_this]
-
-
-class PretrainSimCLRSystem(PretrainNCESystem):
-    """System for doing SimCLR pretraining (with or without Ring)."""
-
-    def get_losses_for_batch(self, batch, train=True):
-        indices, img1, img2, _, = batch
-        outputs1 = self.forward(img1)  # get encoder embeddings
-        outputs2 = self.forward(img2)
-
-        # get thresholds to define the ring for negative samples
-        thres_outer = self.thres_outer_policy.get_threshold(self.global_step)
-        thres_inner = self.thres_inner_policy.get_threshold(self.global_step)
-
-        loss_class = globals()[self.config.loss_params.loss]
-        loss_fn = loss_class(
-            outputs1, 
-            outputs2,
-            t=self.config.loss_params.t,
-            thres_outer=thres_outer,
-            thres_inner=thres_inner,
-            # if False, keep the inner ring defn fixed, otherwise set as 
-            # a fraction of the outer
-            dynamic_inner=self.config.loss_params.dynamic_inner or True,
-            # if True, use neighboring points for views (e.g. local aggregation)
-            neighbor_views=self.config.loss_params.neighbor_views or False,
-            # if True, use logsumexp instead of sum in NCE numerator
-            logsumexp_inner=self.config.loss_params.logsumexp_inner or True,
-            # if True, include positive view as a negative sample
-            self_negative=self.config.loss_params.self_negative or True,
-        )
-        loss = loss_fn.get_loss()
-
-        if train:
-            with torch.no_grad():
-                # update the memory bank, which we use either in the contrastive
-                # algorithm itself, or for statistics
-                new_data_memory = utils.l2_normalize(outputs1, dim=1)
-                self.memory_bank.update(indices, new_data_memory)
-
-            # update outer ring threshold
-            if self.config.loss_params.adaptive_anneal_on_loss:
-                self.thres_outer_policy.record(loss.item())
-
-        return loss, (thres_outer, thres_inner)
 
 
 class TransferSystem(pl.LightningModule):
